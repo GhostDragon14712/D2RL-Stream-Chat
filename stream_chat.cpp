@@ -26,7 +26,8 @@
 #pragma comment(lib, "winhttp.lib")
 
 // ============================================================================
-// DEV SWITCH: Set to 1 to enable raw memory dumps, scanners, and experimental hooks.
+// DEV SWITCH: Set to 1 to enable diagnostic scanners, memory dumpers, and tests.
+// Set to 0 for normal, crash-proof gameplay.
 // ============================================================================
 #define ENABLE_DEV_COMMANDS 0
 
@@ -37,8 +38,8 @@ constexpr D2RL::PluginInfo kPluginInfo = {
     .abiVersion = D2RL_PLUGIN_ABI_VERSION,
     .id = "d2rl-streamchat",
     .name = "D2R Stream Chat",
-    .version = "1.0.0",
-    .author = "GhostDragon14712",
+    .version = "1.9.8",
+    .author = "D2R Community",
     .description = "Streams Twitch & YouTube live chat directly into D2R native in-game chat.",
     .flags = D2RL::PluginFlags::Client,
     .reserved = {0, 0, 0, 0},
@@ -97,75 +98,16 @@ struct D2RStringRef {
 
 using D2RSubmitChatHandlerFn = void(__fastcall*)(void* widget, D2RStringRef* stringRef, uint64_t channel) noexcept;
 
-// Dynamic memory target for SubmitChatHandler (survives game updates)
-static uint8_t* g_submitChatTarget = nullptr;
+// Verified SubmitChatHandler entrypoint
+constexpr uintptr_t kSubmitChatRva = 0x2E34C0;
 
-// ============================================================================
-// Pattern Scanner Engine
-// ============================================================================
-static uint8_t* FindPattern(HMODULE hModule, const uint8_t* pattern, const char* mask) {
-    if (!hModule || !pattern || !mask || mask[0] == '\0') return nullptr;
-
-    auto* dosHeader = reinterpret_cast<PIMAGE_DOS_HEADER>(hModule);
-    if (dosHeader->e_magic != IMAGE_DOS_SIGNATURE) return nullptr;
-    auto* ntHeaders = reinterpret_cast<PIMAGE_NT_HEADERS>(
-        reinterpret_cast<uint8_t*>(hModule) + dosHeader->e_lfanew);
-    if (ntHeaders->Signature != IMAGE_NT_SIGNATURE) return nullptr;
-
-    uint8_t* base = reinterpret_cast<uint8_t*>(hModule);
-    size_t size = ntHeaders->OptionalHeader.SizeOfImage;
-    size_t patternLen = std::strlen(mask);
-
-    for (size_t i = 0; i < size - patternLen; ++i) {
-        bool found = true;
-        for (size_t j = 0; j < patternLen; ++j) {
-            if (mask[j] != '?' && base[i + j] != pattern[j]) {
-                found = false;
-                break;
-            }
-        }
-        if (found) {
-            return base + i;
-        }
-    }
-    return nullptr;
-}
-
-// Configured signature pattern for SubmitChatHandler (with wildcards for volatile offsets)
-static const uint8_t kSubmitChatSig[] = "\x48\x89\x5C\x24\x00\x48\x89\x74\x24\x00\x57\x48\x83\xEC\x00\x48\x8B\xF2";
-static const char*   kSubmitChatMask  = "xxxx?xxxx?xxxx?xxx";
-
-static bool ResolveSubmitChatHandler() {
+static bool SubmitChatDirect(const char* text, uint64_t channel = 0) {
+    if (!text || !text[0]) return false;
     HMODULE hD2R = GetModuleHandleA(NULL);
     if (!hD2R) return false;
     uint8_t* base = reinterpret_cast<uint8_t*>(hD2R);
 
-    // 1. Try dynamic pattern scan
-    uint8_t* found = FindPattern(hD2R, kSubmitChatSig, kSubmitChatMask);
-    if (found) {
-        g_submitChatTarget = found;
-        WriteLog("[StreamChat] Pattern scan SUCCESS: SubmitChatHandler at %p (RVA: 0x%zX)", 
-            (void*)found, (size_t)(found - base));
-        return true;
-    }
-
-    // 2. Safe Fallback to current verified RVA
-    g_submitChatTarget = base + 0x2E34C0;
-
-    // Log the current 20 bytes so you can inspect the exact opcodes if needed
-    char hexDump[128] = {};
-    int pos = 0;
-    for (size_t b = 0; b < 20; ++b) {
-        pos += std::snprintf(hexDump + pos, sizeof(hexDump) - pos, "\\x%02X", g_submitChatTarget[b]);
-    }
-    WriteLog("[StreamChat] Using verified RVA 0x2E34C0. Prologue bytes: %s", hexDump);
-    return true;
-}
-
-static bool SubmitChatDirect(const char* text, uint64_t channel = 0) {
-    if (!text || !text[0] || !g_submitChatTarget) return false;
-
-    auto fnSubmit = reinterpret_cast<D2RSubmitChatHandlerFn>(g_submitChatTarget);
+    auto fnSubmit = reinterpret_cast<D2RSubmitChatHandlerFn>(base + kSubmitChatRva);
 
     char buf[512] = {};
     size_t len = std::min<size_t>(std::strlen(text), sizeof(buf) - 1);
@@ -494,7 +436,7 @@ static void StartTwitchClient(std::string channel) {
 }
 
 // ============================================================================
-// YouTube InnerTube Zero-Auth Client & Auto-Live Stream Resolver
+// YouTube InnerTube Client
 // ============================================================================
 static std::atomic<bool> g_ytRunning{false};
 static std::atomic<bool> g_ytConnected{false};
@@ -798,9 +740,11 @@ static void __fastcall DetourSubmitChatHandler(void* widget, D2RStringRef* strin
 }
 
 static void InstallSubmitChatHook() {
-    if (!g_submitChatTarget) return;
+    HMODULE hD2R = GetModuleHandleA(NULL);
+    if (!hD2R) return;
 
-    uint8_t* target = g_submitChatTarget;
+    uint8_t* base = reinterpret_cast<uint8_t*>(hD2R);
+    uint8_t* target = base + kSubmitChatRva;
     size_t patchSize = 14;
 
     DWORD oldProtect = 0;
@@ -835,9 +779,11 @@ static void InstallSubmitChatHook() {
 }
 
 static void UninstallSubmitChatHook() {
-    if (!g_trampolinePtr || !g_submitChatTarget) return;
+    if (!g_trampolinePtr) return;
+    HMODULE hD2R = GetModuleHandleA(NULL);
+    if (!hD2R) return;
 
-    uint8_t* target = g_submitChatTarget;
+    uint8_t* target = reinterpret_cast<uint8_t*>(hD2R) + kSubmitChatRva;
     DWORD oldProtect = 0;
     if (VirtualProtect(target, 14, PAGE_EXECUTE_READWRITE, &oldProtect)) {
         std::memcpy(target, g_savedBytes, 14);
@@ -845,6 +791,57 @@ static void UninstallSubmitChatHook() {
     }
     g_trampolinePtr = nullptr;
 }
+
+// ============================================================================
+// DEVELOPER TOOLS & DIAGNOSTICS (Active only when ENABLE_DEV_COMMANDS == 1)
+// ============================================================================
+#if ENABLE_DEV_COMMANDS
+
+static void DumpBytes(const char* label, const uint8_t* ptr, size_t count = 24) {
+    if (!ptr) return;
+    char hex[128] = {};
+    int pos = 0;
+    for (size_t i = 0; i < count; ++i) {
+        pos += std::snprintf(hex + pos, sizeof(hex) - pos, "%02X ", ptr[i]);
+    }
+    if (g_context) {
+        char buf[256];
+        std::snprintf(buf, sizeof(buf), "[DevDump] %s: %s", label, hex);
+        g_context->WriteConsoleMessage(buf);
+    }
+}
+
+static auto DumpChatCommand(
+    D2R::Game::Client*,
+    const D2RL::ConsoleCommandContext* cmd,
+    void*
+) noexcept -> D2RL::ConsoleCommandResult {
+    if (!cmd || !cmd->plugin) return D2RL::ConsoleCommandResult::Failed;
+    HMODULE hD2R = GetModuleHandleA(NULL);
+    if (!hD2R) return D2RL::ConsoleCommandResult::Failed;
+    uint8_t* base = reinterpret_cast<uint8_t*>(hD2R);
+
+    DumpBytes("0x2E34C0 (SubmitChatHandler)", base + kSubmitChatRva, 24);
+    return D2RL::ConsoleCommandResult::Handled;
+}
+
+static auto TestChatCommand(
+    D2R::Game::Client*,
+    const D2RL::ConsoleCommandContext* cmd,
+    void*
+) noexcept -> D2RL::ConsoleCommandResult {
+    if (!cmd || !cmd->plugin) return D2RL::ConsoleCommandResult::Failed;
+    char user[64] {};
+    char text[256] {};
+    if (std::sscanf((cmd->args ? cmd->args : ""), "%63s %255[^\n]", user, text) >= 2) {
+        AddMessage(Platform::Twitch, user, text, true);
+        return D2RL::ConsoleCommandResult::Handled;
+    }
+    cmd->plugin->WriteConsoleMessage("Usage: /testchat <user> <message>");
+    return D2RL::ConsoleCommandResult::InvalidArguments;
+}
+
+#endif // ENABLE_DEV_COMMANDS
 
 // ============================================================================
 // User Console Commands
@@ -1046,9 +1043,6 @@ D2RL_PLUGIN_EXPORT auto D2RLoaderLoadPlugin(const D2RL::PluginContext* context) 
 
     (void)context->QueryService(&g_widgets);
 
-    // Dynamic resolution of SubmitChatHandler across game updates
-    ResolveSubmitChatHandler();
-
     // Register Safe User Commands
     (void)context->RegisterConsoleCommand("streamchat", StreamChatCommand, "StreamChat configuration and status.");
     (void)context->RegisterConsoleCommand("sc", StreamChatCommand, "Shortcut for /streamchat.");
@@ -1056,10 +1050,15 @@ D2RL_PLUGIN_EXPORT auto D2RLoaderLoadPlugin(const D2RL::PluginContext* context) 
     (void)context->RegisterConsoleCommand("youtube", YouTubeCommand, "Connect to YouTube Live chat or set channel handle.");
     (void)context->RegisterConsoleCommand("yt", YouTubeCommand, "Shortcut for /youtube.");
 
+#if ENABLE_DEV_COMMANDS
+    (void)context->RegisterConsoleCommand("dumpchat", DumpChatCommand, "[DEV] Dump 0x2E34C0 function bytes.");
+    (void)context->RegisterConsoleCommand("testchat", TestChatCommand, "[DEV] Simulate incoming chat message.");
+#endif
+
     // Install trampoline hook for in-game /tr & /ttv chat replies
     InstallSubmitChatHook();
 
-    AddMessage(Platform::System, "StreamChat", "D2R Stream Chat v1.9.6 loaded!", false);
+    AddMessage(Platform::System, "StreamChat", "D2R Stream Chat v1.9.8 loaded!", false);
 
     // Read config
     std::vector<char> configText(8192, 0);
