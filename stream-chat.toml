@@ -1,0 +1,27 @@
+# ==============================================================================
+# D2R Stream Chat Configuration
+# Injects Twitch and YouTube live chat directly into D2R native in-game chat.
+# ==============================================================================
+
+[general]
+# Filter out automated bot commands starting with '!' (true = hide, false = show)
+filter_bot_commands = true
+
+# Platform tag style: "ttv", "twitch", or "none"
+prefix_mode = "twitch"
+
+[twitch]
+enabled = true
+# Your Twitch channel name (e.g. "ghostdragon14712")
+channel = ""
+username = ""
+# Optional OAuth token to send replies back to Twitch using /tr or /ttv.
+# If left blank, you will still receive live chat in read-only mode anonymously.
+# ("https://twitchtokengenerator.com/")
+oauth = ""
+
+[youtube]
+enabled = true
+# Your YouTube handle or channel name (e.g. "@-Ghost.Dragon")
+# Automatically detects when you go live without needing a video ID!
+channel = ""
