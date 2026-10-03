@@ -66,22 +66,22 @@ channel = "@YourChannel"
 ```
 
 
-##⌨️ In-Game Commands
--You can control the plugin or reply to viewers directly from the in-game chat prompt or 
--developer console:
--Chatting with Viewers (Normal In-Game Chat Box)
--Press Enter in-game and type:
--/tr <message> — Send a reply to your Twitch chat (e.g. /tr Thanks for the follow!).
--(Note: Requires configuring your username and oauth token in the TOML file or via /twitch auth).
--Console Commands ( ctrl + ~ )
--streamchat or /sc — Display connection status and message counters.
--streamchat prefix <ttv|twitch|none> — Change the prefix format on the fly.
--streamchat filter <on|off> — Toggle the !command bot filter.
--twitch <channel> — Connect to a Twitch channel live.
--twitch disconnect — Disconnect from Twitch.
--twitch auth <oauth:token> [username] — Set your Twitch OAuth token without restarting.
--youtube <@handle|video_url> — Connect to a YouTube stream or channel.
--youtube disconnect — Disconnect from YouTube.
+##⌨️ In-Game Commands  
+-You can control the plugin or reply to viewers directly from the in-game chat prompt or   
+-developer console:  
+-Chatting with Viewers (Normal In-Game Chat Box)  
+-Press Enter in-game and type:  
+-/tr <message> — Send a reply to your Twitch chat (e.g. /tr Thanks for the follow!).  
+-(Note: Requires configuring your username and oauth token in the TOML file or via /twitch auth).  
+-Console Commands ( ctrl + ~ )  
+-streamchat or /sc — Display connection status and message counters.  
+-streamchat prefix <ttv|twitch|none> — Change the prefix format on the fly.  
+-streamchat filter <on|off> — Toggle the !command bot filter.  
+-twitch <channel> — Connect to a Twitch channel live.  
+-twitch disconnect — Disconnect from Twitch.  
+-twitch auth <oauth:token> [username] — Set your Twitch OAuth token without restarting.  
+-youtube <@handle|video_url> — Connect to a YouTube stream or channel.  
+-youtube disconnect — Disconnect from YouTube.  
 
 
 ##🛠️ Building from Source  
