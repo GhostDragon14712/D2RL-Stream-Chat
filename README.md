@@ -84,16 +84,16 @@ channel = "@YourChannel"
 -youtube disconnect — Disconnect from YouTube.
 
 
-##🛠️ Building from Source
--This project uses CMake and C++20. It automatically downloads and configures the D2RLoader 
--PluginSDK during compilation using CMake FetchContent—no manual SDK setup required!
--Prerequisites
--Windows 10 / 11 (64-bit)
--Visual Studio 2022 (with Desktop development with C++)
--CMake (v3.29 or newer)
--Build Instructions
+##🛠️ Building from Source  
+-This project uses CMake and C++20. It automatically downloads and configures the D2RLoader   
+-PluginSDK during compilation using CMake FetchContent—no manual SDK setup required!  
+-Prerequisites  
+-Windows 10 / 11 (64-bit)  
+-Visual Studio 2022 (with Desktop development with C++)  
+-CMake (v3.29 or newer)  
+-Build Instructions  
 
-##Clone the repository, Configure the build directory, and compile.
+##Clone the repository, Configure the build directory, and compile.  
 
 ```powershell
 git clone https://github.com/yourusername/D2RStreamChat.git
@@ -102,10 +102,8 @@ cmake -B build
 cmake --build build --config Release
 ```
 
-The compiled d2rl-streamchat.dll will be located in:
-build/Release/d2rl-streamchat.dll.
-📄 License
-This project is open-source and distributed under the MIT License. See LICENSE for details.
-code
-Code
----
+The compiled d2rl-streamchat.dll will be located in:  
+build/Release/d2rl-streamchat.dll.  
+📄 License  
+This project is open-source and distributed under the MIT License. See LICENSE for details.  
+
