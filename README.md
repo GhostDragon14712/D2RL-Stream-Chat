@@ -25,9 +25,10 @@ A native in-game stream chat integration for **Diablo II: Resurrected**, powered
 2. Download the latest `d2rl-streamchat.dll` from the [Releases](../../releases) tab.
 3. Place `d2rl-streamchat.dll` into your D2RLoader plugins folder:
 Start Diablo II: Resurrected through D2RLoader.
-⚙️ Configuration
+
+## ⚙️ Configuration
 On first launch, D2RLoader generates a configuration file at:
-d2rloader/config/d2rl-streamchat.toml (or inside your D2RLoader config directory).
+d2rloader/config/d2rl-streamchat.toml
 Open d2rl-streamchat.toml in any text editor.
 
 
