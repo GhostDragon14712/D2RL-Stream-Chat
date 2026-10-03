@@ -76,14 +76,14 @@ Press Enter in-game and type:
 
 
 ##Console Commands ( ctrl + ~ )  
-streamchat or sc — Display connection status and message counters.  
-streamchat prefix <ttv|twitch|none> — Change the prefix format on the fly.  
-streamchat filter <on|off> — Toggle the !command bot filter.  
-twitch <channel> — Connect to a Twitch channel live.  
-twitch disconnect — Disconnect from Twitch.  
-twitch auth <oauth:token> [username] — Set your Twitch OAuth token without restarting.  
-youtube <@handle|video_url> — Connect to a YouTube stream or channel.  
-youtube disconnect — Disconnect from YouTube.  
+**streamchat** or **sc** — Display connection status and message counters.  
+**streamchat prefix <ttv|twitch|none>** — Change the prefix format on the fly.  
+**streamchat filter <on|off>** — Toggle the !command bot filter.  
+**twitch <channel>** — Connect to a Twitch channel live.  
+**twitch disconnect** — Disconnect from Twitch.  
+**twitch auth <oauth:token> [username]** — Set your Twitch OAuth token without restarting. **Make sure you don't do this on stream**  
+**youtube <@handle|video_url>** — Connect to a YouTube stream or channel.  
+**youtube disconnect** — Disconnect from YouTube.  
 
 
 ##🛠️ Building from Source  
