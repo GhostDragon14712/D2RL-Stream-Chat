@@ -28,7 +28,7 @@ Start Diablo II: Resurrected through D2RLoader.
 
 ## ⚙️ Configuration
 On first launch, D2RLoader generates a configuration file at:
-d2rloader/config/d2rl-streamchat.toml
+d2rloader/config/d2rl-streamchat.toml  
 Open d2rl-streamchat.toml in any text editor.
 
 
