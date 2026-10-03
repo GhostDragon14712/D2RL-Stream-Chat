@@ -100,14 +100,6 @@ Prerequisites
 Windows 10/11 (64-bit)  
 Visual Studio 2022 (with Desktop development with C++)  
 CMake (v3.29 or newer)  
-Build Instructions  
- 
-```powershell
-git clone https://github.com/yourusername/D2RStreamChat.git
-cd D2RStreamChat
-cmake -B build
-cmake --build build --config Release
-```
 
 ---
 
