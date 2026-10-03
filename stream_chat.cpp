@@ -73,6 +73,11 @@ static const D2RL::WidgetService* g_widgets = nullptr;
 static std::atomic<bool> g_inGameSession{false};
 static std::atomic<PrefixMode> g_prefixMode{PrefixMode::TTV};
 static std::atomic<bool> g_botFilter{true};
+
+// When true: uses SubmitChatDirect (visible in TCP/IP).
+// When false: uses PushClientChatEntry (purely client-side, 0 network packets).
+static std::atomic<bool> g_broadcastToGame{false};
+
 static std::mutex g_configMutex;
 
 static void WriteLog(const char* fmt, ...) {
@@ -91,15 +96,44 @@ static void WriteLog(const char* fmt, ...) {
 
 #pragma pack(push, 8)
 struct D2RStringRef {
-    char* data;
+    const char* data;
     uint64_t length;
 };
 #pragma pack(pop)
 
 using D2RSubmitChatHandlerFn = void(__fastcall*)(void* widget, D2RStringRef* stringRef, uint64_t channel) noexcept;
+using PushClientChatEntryFn = void(__fastcall*)(const D2RStringRef* stringRef, uint8_t color, uint64_t unused, uint64_t arg1, uint64_t arg2, void* ptr1, void* ptr2) noexcept;
 
-// Verified SubmitChatHandler entrypoint
 constexpr uintptr_t kSubmitChatRva = 0x2E34C0;
+
+static bool PushClientChatDirect(const char* text, uint8_t color = 4) {
+    if (!text || !text[0]) return false;
+
+    static PushClientChatEntryFn s_fnPushClient = nullptr;
+    static bool s_resolved = false;
+
+    if (!s_resolved) {
+        s_resolved = true;
+        HMODULE hCore = GetModuleHandleA("D2RCore.dll");
+        if (!hCore) hCore = GetModuleHandleA("d2rcore.dll");
+        if (hCore) {
+            s_fnPushClient = reinterpret_cast<PushClientChatEntryFn>(GetProcAddress(hCore, "PushClientChatEntry"));
+        }
+    }
+
+    if (!s_fnPushClient) return false;
+
+    D2RStringRef ref{ text, static_cast<uint64_t>(std::strlen(text)) };
+
+    __try {
+        s_fnPushClient(&ref, color, 0, 0, 0, nullptr, nullptr);
+        return true;
+    }
+    __except (EXCEPTION_EXECUTE_HANDLER) {
+        WriteLog("[StreamChat] PushClientChatEntry exception: 0x%08X", GetExceptionCode());
+        return false;
+    }
+}
 
 static bool SubmitChatDirect(const char* text, uint64_t channel = 0) {
     if (!text || !text[0]) return false;
@@ -128,6 +162,15 @@ static bool SubmitChatDirect(const char* text, uint64_t channel = 0) {
 
 static bool SendToNativeChat(const char* formattedMessage) {
     if (!formattedMessage || !formattedMessage[0]) return false;
+
+    // 1. Pure client-side delivery (0 network packets sent to other players in TCP/IP)
+    if (!g_broadcastToGame.load()) {
+        if (PushClientChatDirect(formattedMessage, 4)) { // 4 = Gold
+            return true;
+        }
+    }
+
+    // 2. Fallback to SubmitChatDirect if broadcast is enabled or client push fails
     return SubmitChatDirect(formattedMessage, 0);
 }
 
@@ -727,7 +770,7 @@ static void __fastcall DetourSubmitChatHandler(void* widget, D2RStringRef* strin
                 std::snprintf(buf, sizeof(buf), "[Twitch Reply] %s: '%s'", sent ? "Sent" : "Failed", reply.c_str());
                 g_context->WriteConsoleMessage(buf);
             }
-            stringRef->data[0] = '\0';
+            stringRef->data = "";
             stringRef->length = 0;
             return;
         }
@@ -825,6 +868,24 @@ static auto DumpChatCommand(
     return D2RL::ConsoleCommandResult::Handled;
 }
 
+static auto DumpCoreCommand(
+    D2R::Game::Client*,
+    const D2RL::ConsoleCommandContext* cmd,
+    void*
+) noexcept -> D2RL::ConsoleCommandResult {
+    if (!cmd || !cmd->plugin) return D2RL::ConsoleCommandResult::Failed;
+    HMODULE hCore = GetModuleHandleA("D2RCore.dll");
+    if (!hCore) hCore = GetModuleHandleA("d2rcore.dll");
+    if (!hCore) {
+        cmd->plugin->WriteConsoleMessage("[DevDump] D2RCore.dll not found.");
+        return D2RL::ConsoleCommandResult::Handled;
+    }
+    uint8_t* base = reinterpret_cast<uint8_t*>(hCore);
+    DumpBytes("D2RCore+0x45D600", base + 0x45D600, 32);
+    DumpBytes("D2RCore+0x490C00", base + 0x490C00, 32);
+    return D2RL::ConsoleCommandResult::Handled;
+}
+
 static auto TestChatCommand(
     D2R::Game::Client*,
     const D2RL::ConsoleCommandContext* cmd,
@@ -858,17 +919,25 @@ static auto StreamChatCommand(
         char buf[384];
         std::lock_guard<std::mutex> lock(g_configMutex);
         std::snprintf(buf, sizeof(buf),
-            "[StreamChat] InGame: %s | Twitch: %s (%s) | YouTube: %s (%s) | Prefix: %s | Filter: %s",
+            "[StreamChat] InGame: %s | Delivery: %s | Twitch: %s (%s) | YouTube: %s (%s)",
             g_inGameSession.load() ? "Yes" : "No",
+            g_broadcastToGame.load() ? "TCP/IP Broadcast (0x2E34C0)" : "Pure Client-Side (PushClientChatEntry)",
             g_activeTwitchChannel.empty() ? "None" : g_activeTwitchChannel.c_str(),
             g_twitchConnected.load() ? "Connected" : "Disconnected",
             g_activeYtTarget.empty() ? "None" : g_activeYtTarget.c_str(),
-            g_ytConnected.load() ? "Connected" : "Monitoring",
-            (g_prefixMode.load() == PrefixMode::TTV) ? "[TTV]" :
-            (g_prefixMode.load() == PrefixMode::Twitch) ? "[Twitch]" : "None",
-            g_botFilter.load() ? "ON" : "OFF"
+            g_ytConnected.load() ? "Connected" : "Monitoring"
         );
         cmd->plugin->WriteConsoleMessage(buf);
+        return D2RL::ConsoleCommandResult::Handled;
+    }
+
+    if (args.starts_with("broadcast ")) {
+        std::string mode(args.substr(10));
+        bool enable = (mode == "on" || mode == "1" || mode == "true");
+        g_broadcastToGame.store(enable);
+        cmd->plugin->WriteConsoleMessage(enable ? 
+            "[StreamChat] Mode: Broadcast (Sent via SubmitChatHandler, visible to party in TCP/IP)" : 
+            "[StreamChat] Mode: Client-Side (Rendered locally via PushClientChatEntry, 0 packets sent!)");
         return D2RL::ConsoleCommandResult::Handled;
     }
 
@@ -894,7 +963,23 @@ static auto StreamChatCommand(
         return D2RL::ConsoleCommandResult::Handled;
     }
 
-    cmd->plugin->WriteConsoleMessage("Usage: /streamchat [status | prefix <ttv|twitch|none> | filter <on|off>]");
+    cmd->plugin->WriteConsoleMessage("Usage: /streamchat [status | broadcast <on|off> | prefix <ttv|twitch|none> | filter <on|off>]");
+    return D2RL::ConsoleCommandResult::Handled;
+}
+
+// Direct test command for client-side chat push
+static auto TestClientChatCommand(
+    D2R::Game::Client*,
+    const D2RL::ConsoleCommandContext* cmd,
+    void*
+) noexcept -> D2RL::ConsoleCommandResult {
+    if (!cmd || !cmd->plugin) return D2RL::ConsoleCommandResult::Failed;
+    const char* text = (cmd->args && cmd->args[0]) ? cmd->args : "[Test] Client-Side Native Chat";
+
+    bool ok = PushClientChatDirect(text, 4); // 4 = Gold
+    cmd->plugin->WriteConsoleMessage(ok ? 
+        "[StreamChat] PushClientChatEntry called successfully!" : 
+        "[StreamChat] PushClientChatEntry failed or function not found.");
     return D2RL::ConsoleCommandResult::Handled;
 }
 
@@ -1043,22 +1128,24 @@ D2RL_PLUGIN_EXPORT auto D2RLoaderLoadPlugin(const D2RL::PluginContext* context) 
 
     (void)context->QueryService(&g_widgets);
 
-    // Register Safe User Commands
+    // Register User Commands
     (void)context->RegisterConsoleCommand("streamchat", StreamChatCommand, "StreamChat configuration and status.");
     (void)context->RegisterConsoleCommand("sc", StreamChatCommand, "Shortcut for /streamchat.");
+    (void)context->RegisterConsoleCommand("testclientchat", TestClientChatCommand, "Test local-only client chat push.");
     (void)context->RegisterConsoleCommand("twitch", TwitchCommand, "Connect to Twitch stream chat.");
     (void)context->RegisterConsoleCommand("youtube", YouTubeCommand, "Connect to YouTube Live chat or set channel handle.");
     (void)context->RegisterConsoleCommand("yt", YouTubeCommand, "Shortcut for /youtube.");
 
 #if ENABLE_DEV_COMMANDS
     (void)context->RegisterConsoleCommand("dumpchat", DumpChatCommand, "[DEV] Dump 0x2E34C0 function bytes.");
-    (void)context->RegisterConsoleCommand("testchat", TestChatCommand, "[DEV] Simulate incoming chat message.");
+    (void)context->RegisterConsoleCommand("dumpcore", DumpCoreCommand, "[DEV] Dump D2RCore memory bytes.");
+    (void)context->RegisterConsoleCommand("testchat", TestChatCommand, "[DEV] Simulate incoming Twitch chat message.");
 #endif
 
-    // Install trampoline hook for in-game /tr & /ttv chat replies
+    // Trampoline hook for in-game /tr & /ttv chat replies
     InstallSubmitChatHook();
 
-    AddMessage(Platform::System, "StreamChat", "D2R Stream Chat v1.9.8 loaded!", false);
+    AddMessage(Platform::System, "StreamChat", "D2R Stream Chat v1.0.0 loaded!", false);
 
     // Read config
     std::vector<char> configText(8192, 0);
@@ -1096,6 +1183,13 @@ D2RL_PLUGIN_EXPORT auto D2RLoaderLoadPlugin(const D2RL::PluginContext* context) 
             g_botFilter.store(false);
         } else if (cfg.find("filter_bot_commands = true") != std::string::npos) {
             g_botFilter.store(true);
+        }
+
+        // broadcast_to_game: defaults to false (local only)
+        if (cfg.find("broadcast_to_game = true") != std::string::npos) {
+            g_broadcastToGame.store(true);
+        } else {
+            g_broadcastToGame.store(false);
         }
 
         {
