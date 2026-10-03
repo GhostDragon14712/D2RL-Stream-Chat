@@ -30,7 +30,9 @@ On first launch, D2RLoader generates a configuration file at:
 d2rloader/plugins/d2rl-streamchat.toml (or inside your D2RLoader config directory).
 Open d2rl-streamchat.toml in any text editor:
 code
-Toml
+
+
+```Toml
 [general]
 # Filter out bot commands starting with '!' (true = hide, false = show)
 filter_bot_commands = true
@@ -60,6 +62,10 @@ enabled = true
 # Enter your YouTube handle (e.g. "@YourChannel" or "YourChannel") or a video URL/ID.
 # If a handle is used, StreamChat automatically detects when you go live!
 channel = "@YourChannel"
+
+```
+
+
 ⌨️ In-Game Commands
 You can control the plugin or reply to viewers directly from the in-game chat prompt or developer console:
 Chatting with Viewers (Normal In-Game Chat Box)
