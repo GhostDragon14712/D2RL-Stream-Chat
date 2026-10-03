@@ -68,7 +68,7 @@ channel = "@YourChannel"
 ```
 ---
 
-##⌨️ In-Game Commands  
+## ⌨️ In-Game Commands  
 
 You can control the plugin or reply to viewers directly from the in-game chat prompt or   
 developer console:  
@@ -79,7 +79,7 @@ Press Enter in-game and type:
 
 ---
 
-##Console Commands ( ctrl + ~ )
+## Console Commands ( ctrl + ~ )
 
 **streamchat** or **sc** — Display connection status and message counters.  
 **streamchat prefix <ttv|twitch|none>** — Change the prefix format on the fly.  
@@ -92,7 +92,7 @@ Press Enter in-game and type:
 
 ---
 
-##🛠️ Building from Source  
+## 🛠️ Building from Source  
 
 This project uses CMake and C++20. It automatically downloads and configures the D2RLoader   
 PluginSDK during compilation using CMake FetchContent—no manual SDK setup required!  
