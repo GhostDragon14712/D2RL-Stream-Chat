@@ -29,6 +29,7 @@ Start Diablo II: Resurrected through D2RLoader.
 ---
 
 ## ⚙️ Configuration
+
 On first launch, D2RLoader generates a configuration file at:
 d2rloader/config/d2rl-streamchat.toml  
 Open d2rl-streamchat.toml in any text editor.
@@ -68,6 +69,7 @@ channel = "@YourChannel"
 ---
 
 ##⌨️ In-Game Commands  
+
 You can control the plugin or reply to viewers directly from the in-game chat prompt or   
 developer console:  
 Chatting with Viewers (Normal In-Game Chat Box)  
@@ -77,7 +79,8 @@ Press Enter in-game and type:
 
 ---
 
-##Console Commands ( ctrl + ~ )  
+##Console Commands ( ctrl + ~ )
+
 **streamchat** or **sc** — Display connection status and message counters.  
 **streamchat prefix <ttv|twitch|none>** — Change the prefix format on the fly.  
 **streamchat filter <on|off>** — Toggle the !command bot filter.  
@@ -90,6 +93,7 @@ Press Enter in-game and type:
 ---
 
 ##🛠️ Building from Source  
+
 This project uses CMake and C++20. It automatically downloads and configures the D2RLoader   
 PluginSDK during compilation using CMake FetchContent—no manual SDK setup required!  
 Prerequisites  
@@ -97,9 +101,7 @@ Windows 10/11 (64-bit)
 Visual Studio 2022 (with Desktop development with C++)  
 CMake (v3.29 or newer)  
 Build Instructions  
-
-##Clone the repository, Configure the build directory, and compile.  
-
+ 
 ```powershell
 git clone https://github.com/yourusername/D2RStreamChat.git
 cd D2RStreamChat
