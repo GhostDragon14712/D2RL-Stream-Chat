@@ -26,11 +26,12 @@ A native in-game stream chat integration for **Diablo II: Resurrected**, powered
 3. Place `d2rl-streamchat.dll` into your D2RLoader plugins folder:
 Start Diablo II: Resurrected through D2RLoader.
 
+---
+
 ## ⚙️ Configuration
 On first launch, D2RLoader generates a configuration file at:
 d2rloader/config/d2rl-streamchat.toml  
 Open d2rl-streamchat.toml in any text editor.
-
 
 ```Toml
 [general]
@@ -64,7 +65,7 @@ enabled = true
 channel = "@YourChannel"
 
 ```
-
+---
 
 ##⌨️ In-Game Commands  
 You can control the plugin or reply to viewers directly from the in-game chat prompt or   
@@ -74,6 +75,7 @@ Press Enter in-game and type:
 /tr <message> — Send a reply to your Twitch chat (e.g. /tr Thanks for the follow!).  
 (Note: Requires configuring your username and oauth token in the TOML file or via /twitch auth). 
 
+---
 
 ##Console Commands ( ctrl + ~ )  
 **streamchat** or **sc** — Display connection status and message counters.  
@@ -85,6 +87,7 @@ Press Enter in-game and type:
 **youtube <@handle|video_url>** — Connect to a YouTube stream or channel.  
 **youtube disconnect** — Disconnect from YouTube.  
 
+---
 
 ##🛠️ Building from Source  
 This project uses CMake and C++20. It automatically downloads and configures the D2RLoader   
@@ -103,6 +106,8 @@ cd D2RStreamChat
 cmake -B build
 cmake --build build --config Release
 ```
+
+---
 
 The compiled d2rl-streamchat.dll will be located in:  
 build/Release/d2rl-streamchat.dll.  
