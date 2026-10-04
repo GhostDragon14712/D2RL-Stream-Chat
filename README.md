@@ -104,7 +104,8 @@ Press Enter in-game and type:
 
 ## Console Commands ( ctrl + ~ )
 
-<img width="1134" height="330" alt="image" src="https://github.com/user-attachments/assets/b02943f8-f9dc-420f-beb7-84952b49a03d" />
+<img width="1128" height="330" alt="image" src="https://github.com/user-attachments/assets/7ebd5ab1-96f5-4e19-904d-29a9a3586e64" />
+
 
 ---
 
