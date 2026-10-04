@@ -2152,6 +2152,7 @@ static auto StreamChatCommand(
         cmd->plugin->WriteConsoleMessage(twBuf);
         cmd->plugin->WriteConsoleMessage(ytBuf);
         cmd->plugin->WriteConsoleMessage("  /tr <message> (In-game reply to Twitch live chat)");
+        cmd->plugin->WriteConsoleMessage("Type 'twitch help' or 'youtube help' for platform-specific connection controls!");
         cmd->plugin->WriteConsoleMessage("Note: 'settotoml' is an optional argument you can append to any command to permanently save that setting to d2rl-streamchat.toml!");
         return D2RL::ConsoleCommandResult::Handled;
     }
@@ -2179,8 +2180,8 @@ static auto TwitchCommand(
         cmd->plugin->WriteConsoleMessage(twBuf);
         cmd->plugin->WriteConsoleMessage("  twitch stop                      - Disconnect from current Twitch channel");
         cmd->plugin->WriteConsoleMessage("  twitch status                    - View current Twitch connection state");
-        cmd->plugin->WriteConsoleMessage("  twitch auth <token> [username]   - Configure OAuth token for in-game replies");
-        cmd->plugin->WriteConsoleMessage("  /tr <message>                     - Send in-game reply to Twitch live chat");
+        cmd->plugin->WriteConsoleMessage("  /tr <message>                    - Send in-game reply to Twitch live chat (Requires oauth in TOML)");
+        cmd->plugin->WriteConsoleMessage("Note: Configure 'oauth' in d2rl-streamchat.toml to enable /tr live chat replies.");
         cmd->plugin->WriteConsoleMessage("Note: 'settotoml' is an optional argument you can append to any command to permanently save that setting to d2rl-streamchat.toml!");
         return D2RL::ConsoleCommandResult::Handled;
     }
@@ -2195,26 +2196,8 @@ static auto TwitchCommand(
         return D2RL::ConsoleCommandResult::Handled;
     }
 
-    if (args.starts_with("auth ")) {
-        std::string authArg(args.substr(5));
-        char tokBuf[256] = {};
-        char userBuf[128] = {};
-        if (std::sscanf(authArg.c_str(), "%255s %127s", tokBuf, userBuf) >= 1) {
-            {
-                std::lock_guard<std::mutex> lock(g_configMutex);
-                g_twitchOAuthToken = tokBuf;
-                if (userBuf[0] != '\0') g_twitchUsername = userBuf;
-            }
-            if (saveToToml) {
-                SaveSettingToToml("twitch", "oauth", "\"" + std::string(tokBuf) + "\"");
-                if (userBuf[0] != '\0') SaveSettingToToml("twitch", "username", "\"" + std::string(userBuf) + "\"");
-            }
-            WriteDevLog("[Twitch Auth] OAuth token and username '%s' saved.", userBuf[0] != '\0' ? userBuf : "default");
-            cmd->plugin->WriteConsoleMessage(saveToToml ? "[Twitch Auth] Token saved (Saved to TOML)." : "[Twitch Auth] Token saved.");
-            if (!g_activeTwitchChannel.empty()) {
-                StartTwitchClient(g_activeTwitchChannel);
-            }
-        }
+    if (args.starts_with("auth")) {
+        cmd->plugin->WriteConsoleMessage("[Twitch Auth] To protect your token from stream leaks, configure 'oauth' directly in d2rl-streamchat.toml.");
         return D2RL::ConsoleCommandResult::Handled;
     }
 
@@ -2350,7 +2333,7 @@ D2RL_PLUGIN_EXPORT auto D2RLoaderLoadPlugin(const D2RL::PluginContext* context) 
 
     // Register User Commands
     (void)context->RegisterConsoleCommand("streamchat", StreamChatCommand, "Configure StreamChat options, layout, colors, and status (streamchat help).");
-    (void)context->RegisterConsoleCommand("twitch", TwitchCommand, "Manage Twitch live chat connection (twitch <channel> | stop | status | auth).");
+    (void)context->RegisterConsoleCommand("twitch", TwitchCommand, "Manage Twitch live chat connection (twitch <channel> | stop | status).");
     (void)context->RegisterConsoleCommand("youtube", YouTubeCommand, "Manage YouTube Live chat connection (youtube <@handle> | stop | status).");
 
     // Diagnostic & Dev Commands (Protected at runtime by g_enableDevCommands / TOML)
