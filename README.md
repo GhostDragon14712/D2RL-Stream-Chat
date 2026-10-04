@@ -10,10 +10,8 @@ A native in-game stream chat integration for **Diablo II: Resurrected**, powered
 
 - **🎮 100% Native In-Game Chat Integration**: Messages render directly in the standard D2R chat box alongside game messages.
 - **🟣 Twitch Live Chat**:
-  - **Two-Way Chat (Replies)**: Optional [OAuth](https://twitchtokengenerator.com/) support to reply to viewers directly from your in-game chat prompt (`/tr <message>`).
-- **🔴 YouTube Live Chat (Zero-Auth / Quota-Free)**:
-  - Hooks directly into YouTube's internal InnerTube API—**no Google Cloud accounts, developer tokens, or API quotas required**.
-  - **Auto-Live Detection**: Just set your YouTube handle (e.g. `@YourChannel`), and the plugin will automatically detect when you go live!
+  - **Two-Way Chat (Replies)**: Optional [OAuth](https://twitchtokengenerator.com/) support to reply to viewers directly from your in-game chat prompt (`/tr <message>`).  
+  - **YouTube Live Detection**: Just set your YouTube handle (e.g. `@YourChannel`), and the plugin will automatically detect when you go live!
 - **⚡ Safe Trampoline Hooking**:
   - Automatically intercepts in-game `/tr` command so they are sent to your stream instead of broadcasting to your Diablo party or Battle.net.
 
