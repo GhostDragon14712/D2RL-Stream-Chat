@@ -122,6 +122,10 @@ CMake (v3.29 or newer)
 
 The compiled d2rl-streamchat.dll will be located in:  
 build/Release/d2rl-streamchat.dll.  
-📄 License  
-This project is open-source and distributed under the MIT License. See LICENSE for details.  
+
+---
+
+## 📄 License  
+
+This project is open-source and distributed under the MIT License. See [LICENSE](LICENSE) for details.  
 
