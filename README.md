@@ -35,35 +35,58 @@ d2rloader/config/d2rl-streamchat.toml
 Open d2rl-streamchat.toml in any text editor.
 
 ```Toml
+# ==============================================================================
+# D2R Stream Chat Configuration
+# Injects Twitch and YouTube live chat directly into D2R native in-game chat.
+# ==============================================================================
+
 [general]
-# Filter out bot commands starting with '!' (true = hide, false = show)
+# Chat layout style:
+# "single"  = Prefix, name, and message on 1 line (uses prefix_color).
+# "twoline" = Prefix + name on line 1 (prefix_color), message indented on line 2 (message_color).
+#     This allows distinct colors for name and message with the tradeoff of taking more chat space.
+layout = "twoline"
+
+# Filter out automated bot commands starting with '!' (true = hide, false = show)
 filter_bot_commands = true
 
-# Prefix displayed before viewer names: "ttv", "twitch", or "none"
-# - "ttv"    -> [TTV] Viewer: Hello!
-# - "twitch" -> [Twitch] Viewer: Hello!
-# - "none"   -> Viewer: Hello!
-prefix_mode = "ttv"
+# Platform tag style: "ttv", "twitch", or "none"
+prefix_mode = "twitch"
+
+# YouTube platform tag style: "yt", "youtube", or "none"
+youtube_prefix_mode = "youtube"
+
+# Enable developer diagnostic and testing commands (/testcolor, /testchat, etc.)
+# Anyone can set this to true to help with troubleshooting and testing without recompiling!
+enable_dev_commands = false
 
 [twitch]
 enabled = true
-# Your Twitch channel name (lowercase, no '#' needed)
-channel = "your_twitch_channel"
-
-# Your Twitch username (required ONLY if sending replies via /tr)
-username = "your_twitch_username"
-
-# Optional: OAuth token to send in-game chat replies back to Twitch.
-# Generate one at: https://twitchtokengenerator.com (Needs 'chat:read' & 'chat:write')
-# Format: "oauth:your_token_here"
-# Leave blank for anonymous read-only mode!
+# Your Twitch channel name (e.g. "ghostdragon14712")
+channel = ""
+username = ""
+# Optional OAuth token to send replies back to Twitch using /tr.
+# If left blank, you will still receive live chat in read-only mode anonymously.
+# ("https://twitchtokengenerator.com/")
 oauth = ""
+# Color for the [Twitch] tag and username
+# Working options: white, red, green, blue, gold, gray, tan, orange, yellow, dark_green, purple, light_green
+# Note: "black" is supported but hard to see against the dark background.
+prefix_color = "purple"
+# Twitch message text color ( This is ignored if you are in layout single mode. )
+message_color = "white"
 
 [youtube]
 enabled = true
-# Enter your YouTube handle (e.g. "@YourChannel" or "YourChannel") or a video URL/ID.
-# If a handle is used, StreamChat automatically detects when you go live!
-channel = "@YourChannel"
+# Your YouTube handle or channel name (e.g. "@-Ghost.Dragon")
+# Automatically detects when you go live without needing a video ID!
+channel = ""
+# Color for the [YT] tag and username
+# Working options: red, gold, white, green, blue, gray, tan, orange, yellow, dark_green, purple, light_green
+# Note: "black" is supported but hard to see against the dark background.
+prefix_color = "red"
+# YouTube message text color ( This is ignored if you are in layout single mode. )
+message_color = "white"
 
 ```
 ---
@@ -81,14 +104,7 @@ Press Enter in-game and type:
 
 ## Console Commands ( ctrl + ~ )
 
-**streamchat** or **sc** — Display connection status and message counters.  
-**streamchat prefix <ttv|twitch|none>** — Change the prefix format on the fly.  
-**streamchat filter <on|off>** — Toggle the !command bot filter.  
-**twitch <channel>** — Connect to a Twitch channel live.  
-**twitch disconnect** — Disconnect from Twitch.  
-**twitch auth <oauth:token> [username]** — Set your Twitch OAuth token without restarting. **Make sure you don't do this on stream**  
-**youtube <@handle|video_url>** — Connect to a YouTube stream or channel.  
-**youtube disconnect** — Disconnect from YouTube.  
+<img width="1134" height="330" alt="image" src="https://github.com/user-attachments/assets/b02943f8-f9dc-420f-beb7-84952b49a03d" />
 
 ---
 
