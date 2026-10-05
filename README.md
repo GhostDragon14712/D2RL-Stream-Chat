@@ -12,7 +12,7 @@ A native in-game stream chat integration for **Diablo II: Resurrected**, powered
 - **Twitch Live Chat**:
   - **Two-Way Chat (Replies)**: Optional [OAuth](https://twitchtokengenerator.com/) support to reply to viewers directly from your in-game chat prompt (`/tr <message>`).  
   - **YouTube Live Detection**: Just set your YouTube handle (e.g. `@YourChannel`), and the plugin will automatically detect when you go live!
-- ** Safe Trampoline Hooking**:
+- **Safe Trampoline Hooking**:
   - Automatically intercepts in-game `/tr` command so they are sent to your stream instead of broadcasting to your Diablo party or Battle.net.
 
 ---
