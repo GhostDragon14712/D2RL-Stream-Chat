@@ -96,7 +96,7 @@ developer console:
 Chatting with Viewers (Normal In-Game Chat Box)  
 Press Enter in-game and type:  
 /tr <message> — Send a reply to your Twitch chat (e.g. /tr Thanks for the follow!).  
-(Note: Requires configuring your username and oauth token in the TOML file or via /twitch auth). 
+(Note: Requires configuring your username and oauth token in the TOML file). 
 
 ---
 
