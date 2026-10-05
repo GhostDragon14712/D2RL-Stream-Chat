@@ -1,4 +1,4 @@
-# 💬 D2R Stream Chat
+#  D2R Stream Chat
 
 A native in-game stream chat integration for **Diablo II: Resurrected**, powered by the [D2RLoader](https://d2rloader.net/) [Plugin SDK](https://github.com/D2RLoader/PluginSDK).
 
@@ -6,18 +6,18 @@ A native in-game stream chat integration for **Diablo II: Resurrected**, powered
 
 ---
 
-## ✨ Features
+##  Features
 
-- **🎮 100% Native In-Game Chat Integration**: Messages render directly in the standard D2R chat box alongside game messages.
-- **🟣 Twitch Live Chat**:
+- ** 100% Native In-Game Chat Integration**: Messages render directly in the standard D2R chat box alongside game messages.
+- ** Twitch Live Chat**:
   - **Two-Way Chat (Replies)**: Optional [OAuth](https://twitchtokengenerator.com/) support to reply to viewers directly from your in-game chat prompt (`/tr <message>`).  
   - **YouTube Live Detection**: Just set your YouTube handle (e.g. `@YourChannel`), and the plugin will automatically detect when you go live!
-- **⚡ Safe Trampoline Hooking**:
+- ** Safe Trampoline Hooking**:
   - Automatically intercepts in-game `/tr` command so they are sent to your stream instead of broadcasting to your Diablo party or Battle.net.
 
 ---
 
-## 📥 Installation
+##  Installation
 
 1. Make sure you have **[D2RLoader](https://d2rloader.net/)** installed.
 2. Download the latest `d2rl-streamchat.dll` from the [Releases](../../releases) tab.
@@ -26,7 +26,7 @@ Start Diablo II: Resurrected through D2RLoader.
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 On first launch, D2RLoader generates a configuration file at:
 d2rloader/config/d2rl-streamchat.toml  
@@ -89,7 +89,7 @@ message_color = "white"
 ```
 ---
 
-## ⌨️ In-Game Commands  
+##  In-Game Commands  
 
 You can control the plugin or reply to viewers directly from the in-game chat prompt or   
 developer console:  
@@ -107,7 +107,7 @@ Press Enter in-game and type:
 
 ---
 
-## 🛠️ Building from Source  
+##  Building from Source  
 
 This project uses CMake and C++20. It automatically downloads and configures the D2RLoader   
 PluginSDK during compilation using CMake FetchContent—no manual SDK setup required!  
@@ -123,7 +123,7 @@ build/Release/d2rl-streamchat.dll.
 
 ---
 
-## 📄 License  
+##  License  
 
 This project is open-source and distributed under the MIT License. See [LICENSE](LICENSE) for details.  
 
